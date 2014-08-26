@@ -1,0 +1,24 @@
+Default: &defaults
+  user: lambdaverse
+  password: lambdaverse
+  host: localhost
+  database: lambdaverse
+  connections: 10
+
+Development:
+  <<: *defaults
+
+Testing:
+  database: lambdaverse_test
+  <<: *defaults
+
+Staging:
+  database: lambdaverse_staging
+  connections: 100
+  <<: *defaults
+
+Production:
+  database: lambdaverse_production
+  connections: 100
+  host: localhost
+  <<: *defaults
