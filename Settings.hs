@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- | Settings are centralized, as much as possible, into this file. This
 -- includes database connection settings, static file locations, etc.
 -- In addition, you can configure a number of different aspects of Yesod
@@ -5,18 +7,18 @@
 -- declared in the Foundation.hs file.
 module Settings where
 
-import Prelude
-import Text.Shakespeare.Text (st)
-import Language.Haskell.TH.Syntax
-import Database.Persist.MongoDB (MongoConf)
-import Yesod.Default.Config
-import Yesod.Default.Util
-import Data.Text (Text)
-import Data.Yaml
-import Control.Applicative
-import Settings.Development
-import Data.Default (def)
-import Text.Hamlet
+import           Control.Applicative
+import           Data.Default               (def)
+import           Data.Text                  (Text)
+import           Data.Yaml
+import           Database.Persist.MongoDB   (MongoConf)
+import           Language.Haskell.TH.Syntax
+import           Prelude
+import           Settings.Development
+import           Text.Hamlet
+import           Text.Shakespeare.Text      (st)
+import           Yesod.Default.Config
+import           Yesod.Default.Util
 
 -- | Which Persistent backend this site is using.
 type PersistConf = MongoConf

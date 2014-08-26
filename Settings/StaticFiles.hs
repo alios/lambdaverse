@@ -1,12 +1,13 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Settings.StaticFiles where
 
-import Prelude (IO)
-import Yesod.Static
-import qualified Yesod.Static as Static
-import Settings (staticDir)
-import Settings.Development
-import Language.Haskell.TH (Q, Exp, Name)
-import Data.Default (def)
+import           Data.Default         (def)
+import           Language.Haskell.TH  (Exp, Name, Q)
+import           Prelude              (IO)
+import           Settings             (staticDir)
+import           Settings.Development
+import           Yesod.Static
+import qualified Yesod.Static         as Static
 
 -- | use this to create your static file serving site
 staticSite :: IO Static.Static

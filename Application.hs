@@ -1,30 +1,36 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Application
     ( makeApplication
     , getApplicationDev
     , makeFoundation
     ) where
 
-import Import
-import Settings
-import Yesod.Auth
-import Yesod.Default.Config
-import Yesod.Default.Main
-import Yesod.Default.Handlers
-import Network.Wai.Middleware.RequestLogger
-    ( mkRequestLogger, outputFormat, OutputFormat (..), IPAddrSource (..), destination
-    )
-import qualified Network.Wai.Middleware.RequestLogger as RequestLogger
+import           Data.Default                         (def)
 import qualified Database.Persist
-import Network.HTTP.Client.Conduit (newManager)
-import System.Log.FastLogger (newStdoutLoggerSet, defaultBufSize)
-import Network.Wai.Logger (clockDateCacher)
-import Data.Default (def)
-import Yesod.Core.Types (loggerSet, Logger (Logger))
+import           Import
+import           Network.HTTP.Client.Conduit          (newManager)
+import           Network.Wai.Logger                   (clockDateCacher)
+import           Network.Wai.Middleware.RequestLogger (IPAddrSource (..),
+                                                       OutputFormat (..),
+                                                       destination,
+                                                       mkRequestLogger,
+                                                       outputFormat)
+import qualified Network.Wai.Middleware.RequestLogger as RequestLogger
+import           Settings
+import           System.Log.FastLogger                (defaultBufSize,
+                                                       newStdoutLoggerSet)
+import           Yesod.Auth
+import           Yesod.Core.Types                     (Logger (Logger),
+                                                       loggerSet)
+import           Yesod.Default.Config
+import           Yesod.Default.Handlers
+import           Yesod.Default.Main
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-import Handler.Home
+import           Handler.Home
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
