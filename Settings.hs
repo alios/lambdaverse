@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP         #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 -- | Settings are centralized, as much as possible, into this file. This
@@ -15,10 +16,12 @@ import           Database.Persist.MongoDB   (MongoConf)
 import           Language.Haskell.TH.Syntax
 import           Prelude
 import           Settings.Development
+import           System.Process             (readProcess)
 import           Text.Hamlet
 import           Text.Shakespeare.Text      (st)
 import           Yesod.Default.Config
 import           Yesod.Default.Util
+import           Yesod.Fay
 
 -- | Which Persistent backend this site is using.
 type PersistConf = MongoConf
@@ -76,3 +79,16 @@ parseExtra :: DefaultEnv -> Object -> Parser Extra
 parseExtra _ o = Extra
     <$> o .:  "copyright"
     <*> o .:? "analytics"
+
+fayFile' :: Exp -> FayFile
+fayFile' staticR moduleName
+    | development = fayFileReload settings
+    | otherwise   = fayFileProd settings
+  where
+    settings = (yesodFaySettings moduleName)
+        { yfsSeparateRuntime = Just ("static", staticR)
+        , yfsPostProcess = readProcess "closure" []
+        , yfsExternal = Just ("static", staticR)
+        }
+
+

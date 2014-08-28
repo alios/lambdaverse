@@ -5,12 +5,11 @@ module Import
     ( module Import
     ) where
 
+import           Control.Applicative  as Import (pure, (<$>), (<*>))
+import           Data.Text            as Import (Text)
 import           Prelude              as Import hiding (head, init, last,
                                                  readFile, tail, writeFile)
 import           Yesod                as Import hiding (Route (..))
-
-import           Control.Applicative  as Import (pure, (<$>), (<*>))
-import           Data.Text            as Import (Text)
 
 import           Foundation           as Import
 import           Model                as Import

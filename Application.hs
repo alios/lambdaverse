@@ -27,6 +27,7 @@ import           Yesod.Core.Types                     (Logger (Logger),
 import           Yesod.Default.Config
 import           Yesod.Default.Handlers
 import           Yesod.Default.Main
+import           Yesod.Fay
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!

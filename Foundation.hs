@@ -5,6 +5,7 @@ module Foundation where
 
 import qualified Database.Persist
 import           Database.Persist.MongoDB    hiding (master)
+import           Fay.Convert                 (readFromFay)
 import           Model
 import           Network.HTTP.Client.Conduit (HasHttpManager (getHttpManager),
                                               Manager)
@@ -13,6 +14,7 @@ import           Settings                    (Extra (..), widgetFile)
 import qualified Settings
 import           Settings.Development        (development)
 import           Settings.StaticFiles
+import           SharedTypes
 import           Text.Hamlet                 (hamletFile)
 import           Text.Jasmine                (minifym)
 import           Yesod
@@ -21,6 +23,7 @@ import           Yesod.Auth.BrowserId
 import           Yesod.Core.Types            (Logger)
 import           Yesod.Default.Config
 import           Yesod.Default.Util          (addStaticContentExternal)
+import           Yesod.Fay
 import           Yesod.Static
 
 -- | The site argument for your application. This can be a good place to
@@ -78,6 +81,13 @@ instance Yesod App where
             $(combineStylesheets 'StaticR
                 [ css_normalize_css
                 , css_bootstrap_css
+                , css_bootstrap_theme_css
+                ])
+            $(combineScripts 'StaticR
+                [ js_modernizr_2_6_2_min_js
+                , js_jquery_2_1_1_min_js
+                , js_bootstrap_min_js
+                , js_raphael_min_js
                 ])
             $(widgetFile "default-layout")
         giveUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
@@ -163,3 +173,12 @@ getExtra = fmap (appExtra . settings) getYesod
 -- wiki:
 --
 -- https://github.com/yesodweb/yesod/wiki/Sending-email
+
+instance YesodJquery App where
+
+instance YesodFay App where
+    yesodFayCommand render command =
+        case readFromFay command of
+             Just (FayCommand r) -> render r "fnord"
+             Nothing -> invalidArgs ["Invalid command"]
+    fayRoute = FaySiteR
