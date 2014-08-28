@@ -14,3 +14,4 @@ cabal.sandbox.config
 *.swp
 *_flymake.hs
 TAGS
+.#*
