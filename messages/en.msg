@@ -1,1 +1,2 @@
-Hello: Hello
+ApplicationName: lambdaverse
+MainMap: main map

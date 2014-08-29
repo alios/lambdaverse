@@ -56,6 +56,16 @@ mkYesodData "App" $(parseRoutesFile "config/routes")
 
 type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 
+
+
+
+includeScripts =
+  $(combineScripts 'StaticR
+                 [ js_modernizr_2_6_2_min_js
+                 , js_bootstrap_min_js
+                 , js_raphael_min_js
+                 ])
+
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.
 instance Yesod App where
@@ -83,13 +93,9 @@ instance Yesod App where
                 , css_bootstrap_css
                 , css_bootstrap_theme_css
                 ])
-            $(combineScripts 'StaticR
-                [ js_modernizr_2_6_2_min_js
-                , js_jquery_2_1_1_min_js
-                , js_bootstrap_min_js
-                , js_raphael_min_js
-                ])
             $(widgetFile "default-layout")
+            includeScripts
+
         giveUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- This is done to provide an optimization for serving static files from
@@ -175,6 +181,7 @@ getExtra = fmap (appExtra . settings) getYesod
 -- https://github.com/yesodweb/yesod/wiki/Sending-email
 
 instance YesodJquery App where
+    urlJqueryJs _  = Left $ StaticR js_jquery_2_1_1_min_js
 
 instance YesodFay App where
     yesodFayCommand render command =

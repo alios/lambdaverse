@@ -21,6 +21,7 @@ library
                      Settings.Development
                      Handler.Home
                      SharedTypes
+                     Hexagon
     hs-source-dirs:  ., fay-shared
 
     if flag(dev) || flag(library-only)
