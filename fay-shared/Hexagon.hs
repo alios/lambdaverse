@@ -15,11 +15,19 @@ import           Fay.FFI   ()
 
 import           Data.Data
 
+class HexCoordinate c where
+  neighbors :: c -> [c]
+
 data AxialCoordinate =
   AxialCoordinate  { axial_orientation :: Orientation
                    , axial_q           :: Int
                    , axial_r           :: Int
 } deriving (Show, Read, Eq, Typeable, Data)
+
+instance HexCoordinate AxialCoordinate where
+  neighbors = axialNeighbors
+
+
 
 data OffsetCoordinate =
   OffsetCoordinate  { offset_orientation :: Orientation
@@ -28,6 +36,9 @@ data OffsetCoordinate =
                     , offset_r           :: Int
 } deriving (Show, Read, Eq, Typeable, Data)
 
+instance HexCoordinate OffsetCoordinate where
+  neighbors = offsetNeighbors
+
 
 data CubeCoordinate =
   CubeCoordinate  { cube_orientation :: Orientation
@@ -35,6 +46,9 @@ data CubeCoordinate =
                   , cube_y           :: Int
                   , cube_z           :: Int
 } deriving (Show, Read, Eq, Typeable, Data)
+
+instance HexCoordinate CubeCoordinate where
+  neighbors = cubeNeighbors
 
 data Orientation = Horizontal | Vertical
     deriving (Show, Read, Eq, Typeable, Data)
@@ -258,6 +272,7 @@ minr (c:cs) = foldl min (axial_r c) $ map axial_r $ cs
 (.&.) :: Int -> Int -> Int
 (.&.) = ffi "(%1 & %2)"
 
+
 renderGrid :: Paper -> Hexgrid -> Fay [Element]
 renderGrid paper g =
   let gw = fromIntegral $ grid_width g
@@ -302,4 +317,6 @@ setPaperViewBox paper g (x, y) zoom =
   let w = fromIntegral $ (grid_width g) * (round  $ hexWidth g / zoom)
       h = fromIntegral $ (grid_height g) * (round $ hexHeight g / zoom)
   in setViewBox paper x y w h False
+
+
 #endif
