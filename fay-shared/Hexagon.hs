@@ -17,6 +17,8 @@ import           Data.Data
 
 class HexCoordinate c where
   neighbors :: c -> [c]
+  diagonals :: c -> [c]
+  distance :: c -> c -> Int
 
 data AxialCoordinate =
   AxialCoordinate  { axial_orientation :: Orientation
@@ -26,8 +28,8 @@ data AxialCoordinate =
 
 instance HexCoordinate AxialCoordinate where
   neighbors = axialNeighbors
-
-
+  diagonals = axialDiagonals
+  distance = axialDistance
 
 data OffsetCoordinate =
   OffsetCoordinate  { offset_orientation :: Orientation
@@ -38,7 +40,8 @@ data OffsetCoordinate =
 
 instance HexCoordinate OffsetCoordinate where
   neighbors = offsetNeighbors
-
+  diagonals = offsetDiagonals
+  distance = offsetDistance
 
 data CubeCoordinate =
   CubeCoordinate  { cube_orientation :: Orientation
@@ -49,6 +52,8 @@ data CubeCoordinate =
 
 instance HexCoordinate CubeCoordinate where
   neighbors = cubeNeighbors
+  diagonals = cubeDiagonals
+  distance = cubeDistance
 
 data Orientation = Horizontal | Vertical
     deriving (Show, Read, Eq, Typeable, Data)
@@ -162,6 +167,44 @@ offsetNeighbors c =
          } | (dq,dr) <- ms' ]
 
 
+cubeDiagonals :: CubeCoordinate -> [CubeCoordinate]
+cubeDiagonals c =
+  let  ms = [(2,-1,-1),(1,1,-2),(-1,2,-1)
+            ,(-2,1,1),(-1,-1,2),(1,-2,1)]
+  in [ c { cube_x = cube_x c + dx
+         , cube_y = cube_y c + dy
+         , cube_z = cube_z c + dz
+         } | (dx,dy,dz) <- ms ]
+
+offsetDiagonals :: OffsetCoordinate -> [OffsetCoordinate]
+offsetDiagonals = mapOffsetOverCube cubeDiagonals
+
+axialDiagonals :: AxialCoordinate -> [AxialCoordinate]
+axialDiagonals = mapAxialOverCube cubeDiagonals
+
+
+cubeDistance :: CubeCoordinate -> CubeCoordinate -> Int
+cubeDistance c1 c2 =
+  maximum [ abs $ (cube_x c1) - (cube_x c2)
+          , abs $ (cube_y c1) - (cube_y c2)
+          , abs $ (cube_z c1) - (cube_z c2)
+          ]
+
+axialDistance :: AxialCoordinate -> AxialCoordinate -> Int
+axialDistance c1 c2 = cubeDistance (axial2cube c1) (axial2cube c2)
+
+offsetDistance :: OffsetCoordinate -> OffsetCoordinate -> Int
+offsetDistance c1 c2 = cubeDistance (offset2cube c1) (offset2cube c2)
+
+
+mapOffsetOverCube :: (CubeCoordinate -> [CubeCoordinate]) -> OffsetCoordinate -> [OffsetCoordinate]
+mapOffsetOverCube f c = map (cube2offset (offset_offset c)) $ f (offset2cube c)
+
+mapAxialOverCube :: (CubeCoordinate -> [CubeCoordinate]) -> AxialCoordinate -> [AxialCoordinate]
+mapAxialOverCube f c = map (cube2axial) $ f (axial2cube c)
+
+
+
 
 {--
 even, q -> even, vertical
@@ -169,13 +212,10 @@ odd, q -> odd, vertical
 even, r -> even, horizontal
 odd, r -> odd, horizontal
 
-
-neighbors = [
-   [ [+1, +1], [+1,  0], [ 0, -1],
-     [-1,  0], [-1, +1], [ 0, +1] ],
-   [ [+1,  0], [+1, -1], [ 0, -1],
-     [-1, -1], [-1,  0], [ 0, +1] ]
-]
+diagonals = [[+2, -1, -1], [+1, +1, -2], [-1, +2, -1],
+             [-2, +1, +1], [-1, -1, +2], [+1, -2, +1]]
+d = diagonals[direction]
+return Cube(x + d[0], y + d[1], z + d[2])
 
 
 --}
