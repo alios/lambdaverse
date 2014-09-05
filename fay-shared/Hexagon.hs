@@ -90,15 +90,30 @@ cube2offset offset c =
                       , offset_r = r
                       }
   where offsetF :: Int -> Int -> (Double -> Double -> Double) -> Int
-        offsetF a b op =
-          let a' = fromIntegral a
-              b' = fromIntegral b
-          in round $ a' + (b' `op` (fromIntegral $ b .&. 1)) / 2
+        offsetF a b = offsetHelper a b (+)
 
+offset2cube :: OffsetCoordinate -> CubeCoordinate
+offset2cube c =
+  let orientation = offset_orientation c
+      op = case (offset_offset c) of
+             Even -> (+)
+             Odd -> (-)
+      (x,z) = case orientation of
+               Vertical -> (offset_q c, offsetF (offset_r c) (offset_q c) op)
+               Horizontal -> (offsetF (offset_q c) (offset_r c) op, offset_r c)
+      y = -x-z
+  in CubeCoordinate { cube_orientation = orientation
+                    , cube_x = x
+                    , cube_y = y
+                    , cube_z = z
+                    }
+  where offsetF a b = offsetHelper a b (-)
 
-
-
-
+offsetHelper :: Int -> Int -> (Double -> Double -> Double) -> (Double -> Double -> Double) -> Int
+offsetHelper a b op1 op2 =
+  let a' = fromIntegral a
+      b' = fromIntegral b
+  in round $ a' `op1` (b' `op2` (fromIntegral $ b .&. 1)) / 2
 
 
 hexDim :: Hexgrid -> ScreenCoordinate
