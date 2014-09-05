@@ -15,17 +15,6 @@ import           Fay.FFI   ()
 
 import           Data.Data
 
-data Orientation = Horizontal | Vertical
-    deriving (Show, Read, Eq, Typeable, Data)
-data Offset = Odd | Even
-    deriving (Show, Read, Eq, Typeable, Data)
-
-
-data ScreenCoordinate =
-  ScreenCoordinate { pixel_x :: Int
-                   , pixel_y :: Int
-} deriving (Show, Read, Eq, Typeable, Data)
-
 data AxialCoordinate =
   AxialCoordinate  { axial_orientation :: Orientation
                    , axial_q           :: Int
@@ -47,16 +36,10 @@ data CubeCoordinate =
                   , cube_z           :: Int
 } deriving (Show, Read, Eq, Typeable, Data)
 
-
-
-data Hexgrid =
-  Hexgrid {
-    grid_orientation :: Orientation,
-    grid_offset      :: Offset,
-    grid_hex_size    :: Double,
-    grid_width       :: Int,
-    grid_height      :: Int
-    }  deriving (Show, Read, Eq, Typeable, Data)
+data Orientation = Horizontal | Vertical
+    deriving (Show, Read, Eq, Typeable, Data)
+data Offset = Odd | Even
+    deriving (Show, Read, Eq, Typeable, Data)
 
 
 cube2axial :: CubeCoordinate -> AxialCoordinate
@@ -115,6 +98,94 @@ offsetHelper a b op1 op2 =
       b' = fromIntegral b
   in round $ a' `op1` (b' `op2` (fromIntegral $ b .&. 1)) / 2
 
+axial2offset :: Offset -> AxialCoordinate -> OffsetCoordinate
+axial2offset o = cube2offset o .  axial2cube
+
+offset2axial :: OffsetCoordinate -> AxialCoordinate
+offset2axial = cube2axial . offset2cube
+
+
+cubeNeighbors :: CubeCoordinate -> [CubeCoordinate]
+cubeNeighbors c =
+  let ms = [(1,-1,0),(1,0,-1),(0,1,-1)
+           ,(-1,1,0),(-1,0,1), (0,-1,1)]
+  in [ c { cube_x = cube_x c + dx
+         , cube_y = cube_y c + dy                                                                                    , cube_z = cube_z c + dz
+         } | (dx,dy,dz) <- ms]
+
+axialNeighbors :: AxialCoordinate -> [AxialCoordinate]
+axialNeighbors c =
+  let ms = [(1,0),(1,-1),(0,-1)
+           ,(-1,0),(-1,1),(0,1)]
+  in [ c { axial_q = axial_q c + dq
+         , axial_r = axial_r c + dr
+         } | (dq,dr) <- ms ]
+
+
+offsetNeighbors :: OffsetCoordinate -> [OffsetCoordinate]
+offsetNeighbors c =
+  let orientation = offset_orientation c
+      offset = offset_offset c
+      ms = case (offset,orientation) of
+             (Even, Horizontal) ->
+               [[(1,0),(1,-1),(0,-1),(-1,0),(0,1),(1,1)]
+               ,[(1,0),(0,-1),(-1,-1),(-1,0),(-1,1),(0,1)]]
+             (Even, Vertical) ->
+               [[(1,1),(1,0),(0,-1),(-1,0),(-1,1),(0,1)]
+               ,[(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(0,1)]]
+             (Odd, Horizontal) ->
+               [[(1,0),(0,-1),(-1,-1),(-1,0),(-1,1),(0,1)]
+               ,[(1,0),(1,-1),(0,-1),(-1,0),(0,1),(1,1)]]
+             (Odd, Vertical) ->
+               [[(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(0,1)]
+               ,[(1,1),(1,0),(0,-1),(-1,0),(-1,1),(0,1)]]
+      parity = case orientation of
+                 Horizontal -> offset_r c .&. 1
+                 Vertical -> offset_q c .&. 1
+      ms' = ms !! parity
+  in [ c { offset_q = offset_q c + dq
+         , offset_r = offset_r c + dr
+         } | (dq,dr) <- ms' ]
+
+
+
+{--
+even, q -> even, vertical
+odd, q -> odd, vertical
+even, r -> even, horizontal
+odd, r -> odd, horizontal
+
+
+neighbors = [
+   [ [+1, +1], [+1,  0], [ 0, -1],
+     [-1,  0], [-1, +1], [ 0, +1] ],
+   [ [+1,  0], [+1, -1], [ 0, -1],
+     [-1, -1], [-1,  0], [ 0, +1] ]
+]
+
+
+--}
+
+
+
+
+--
+-- The Hexgrid
+--
+
+data Hexgrid =
+  Hexgrid {
+    grid_orientation :: Orientation,
+    grid_hex_size    :: Double,
+    grid_width       :: Int,
+    grid_height      :: Int
+    }  deriving (Show, Read, Eq, Typeable, Data)
+
+data ScreenCoordinate =
+  ScreenCoordinate { pixel_x :: Int
+                   , pixel_y :: Int
+
+} deriving (Show, Read, Eq, Typeable, Data)
 
 hexDim :: Hexgrid -> ScreenCoordinate
 hexDim g = ScreenCoordinate (round $ hexWidth g) (round $ hexHeight g)
