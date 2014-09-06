@@ -127,21 +127,27 @@ axialNeighbors c =
 
 offsetNeighbors :: OffsetCoordinate -> [OffsetCoordinate]
 offsetNeighbors c =
+  fmap (cube2offset (offset_offset c)) $ cubeNeighbors (offset2cube c)
+
+
+{-
+
+offsetNeighbors c =
   let orientation = offset_orientation c
       offset = offset_offset c
-      ms = case (offset,orientation) of
+      ms = case (offset, orientation) of
              (Even, Horizontal) ->
-               [[(1,0),(1,-1),(0,-1),(-1,0),(0,1),(1,1)]
-               ,[(1,0),(0,-1),(-1,-1),(-1,0),(-1,1),(0,1)]]
+               [[(1,0),(1,-1),(0,-1),(-1,0),(1,1),(2,1)]
+               ,[(1,0),(-1,-1),(-2,-1),(-1,0),(-1,1),(0,1)]]
              (Even, Vertical) ->
-               [[(1,1),(1,0),(0,-1),(-1,0),(-1,1),(0,1)]
-               ,[(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(0,1)]]
+               [[(1,2),(1,1),(0,-1),(-1,0),(-1,1),(0,1)]
+               ,[(1,0),(1,-1),(0,-1),(-1,-2),(-1,-1),(0,1)]]
              (Odd, Horizontal) ->
-               [[(1,0),(0,-1),(-1,-1),(-1,0),(-1,1),(0,1)]
-               ,[(1,0),(1,-1),(0,-1),(-1,0),(0,1),(1,1)]]
+               [[(1,0),(-1,-1),(-2,-1),(-1,0),(-1,1),(0,1)]
+               ,[(1,0),(-1,-1),(-2,-1),(-1,0),(-1,1),(0,1)]]
              (Odd, Vertical) ->
-               [[(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(0,1)]
-               ,[(1,1),(1,0),(0,-1),(-1,0),(-1,1),(0,1)]]
+               [[(1,0),(1,-1),(0,-1),(-1,-2),(-1,-1),(0,1)]
+               ,[(1,2),(1,1),(0,-1),(-1,0),(-1,1),(0,1)]]
       parity = case orientation of
                  Horizontal -> if (odd $ offset_r c) then 1 else 0
                  Vertical -> if (odd $ offset_q c ) then 1 else 0
@@ -149,7 +155,7 @@ offsetNeighbors c =
   in [ c { offset_q = offset_q c + dq
          , offset_r = offset_r c + dr
          } | (dq,dr) <- ms' ]
-
+-}
 
 cubeDiagonals :: CubeCoordinate -> [CubeCoordinate]
 cubeDiagonals c =
