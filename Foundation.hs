@@ -58,12 +58,13 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 
 
 
-
+includeScripts :: (MonadWidget m, HandlerSite m ~ App) => m ()
 includeScripts =
   $(combineScripts 'StaticR
                  [ js_modernizr_2_6_2_min_js
-                 , js_bootstrap_min_js
-                 , js_raphael_min_js
+                 , js_bootstrap_js
+                 , js_raphael_js
+                 , js_backbone_js
                  ])
 
 -- Please see the documentation for the Yesod typeclass. There are a number
@@ -181,7 +182,7 @@ getExtra = fmap (appExtra . settings) getYesod
 -- https://github.com/yesodweb/yesod/wiki/Sending-email
 
 instance YesodJquery App where
-    urlJqueryJs _  = Left $ StaticR js_jquery_2_1_1_min_js
+    urlJqueryJs _  = Left $ StaticR js_jquery_2_1_1_js
 
 instance YesodFay App where
     yesodFayCommand render command =

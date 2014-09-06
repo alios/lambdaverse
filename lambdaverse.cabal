@@ -73,6 +73,9 @@ library
                  , yesod-fay                     >= 0.5
                  , fay                           >= 0.20
                  , process
+                 , system-filepath               >= 0.4
+                 , QuickCheck
+                 , hspec
 
 executable         lambdaverse
     if flag(library-only)
@@ -103,3 +106,4 @@ test-suite test
                  , monad-logger
                  , transformers
                  , hspec
+                 , QuickCheck >= 2
