@@ -5,8 +5,8 @@ module HexagonTests where
 
 import           Hexagon
 import           Prelude
-import           Test.QuickCheck
 import           Test.Hspec
+import           Test.QuickCheck
 
 instance Arbitrary Orientation where
   arbitrary = elements [ Horizontal, Vertical ]
@@ -81,7 +81,7 @@ prop_o2a c = let o = offset_offset c
 
 
 conversionSpec :: Spec
-conversionSpec = 
+conversionSpec =
   describe "testing hexagon coordinate conversions" $ do
     it "convert from cube to axial and back" $ property prop_c2a
     it "convert from axial to cube and back" $ property prop_a2c
@@ -96,7 +96,6 @@ hexagonSpec =
     conversionSpec
 
 
-return []
-runHexagonTests = $quickCheckAll
-runHexagonTests :: IO Bool
+runHexagonTests = hspec hexagonSpec
+runHexagonTests :: IO ()
 

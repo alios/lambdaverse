@@ -1,16 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Main where
 
-import Import
-import Yesod.Default.Config
-import Yesod.Test
-import Test.Hspec (hspec)
-import Application (makeFoundation)
-
-import HomeTest
+import           Application          (makeFoundation)
+import           HexagonTests
+import           HomeTest
+import           Import
+import           Test.Hspec           (describe, hspec)
+import           Yesod.Default.Config
+import           Yesod.Test
 
 main :: IO ()
 main = do
@@ -19,5 +19,7 @@ main = do
                 }
     foundation <- makeFoundation conf
     hspec $ do
+      describe "testing lambadaverse" $ do
+        hexagonSpec
         yesodSpec foundation $ do
-            homeSpecs
+                homeSpecs
