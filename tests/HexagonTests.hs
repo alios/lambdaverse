@@ -37,13 +37,13 @@ instance Arbitrary AxialCoordinate where
 
 instance Arbitrary CubeCoordinate where
   arbitrary = do
-    (x,y,orientation) <- arbitrary
+    (x,y, orientation) <- arbitrary :: Gen (Int, Int, Orientation)
     let z = (-x) - y
     return $
       CubeCoordinate { cube_orientation = orientation
-                     , cube_x = x
-                     , cube_y = y
-                     , cube_z = z
+                     , cube_x = fromIntegral x
+                     , cube_y = fromIntegral y
+                     , cube_z = fromIntegral z
                      }
 
 
@@ -281,8 +281,8 @@ hexagonSpec =
     distanceSpec
     diagonalsSpec
 
-main = hspec hexagonSpec
-main :: IO ()
+testHexagon  :: IO ()
+testHexagon = hspec hexagonSpec
 
 eqList :: Eq a => [a] -> [a] -> Bool
 eqList cs ds = (length cs == length ds) && (and [elem c ds | c <- cs ])

@@ -17,7 +17,8 @@ class HexCoordinate c where
   neighbors :: c -> [c]
   diagonals :: c -> [c]
   distance :: c -> c -> Double
-
+  line :: c -> c -> [c]
+  
 data AxialCoordinate =
   AxialCoordinate  { axial_orientation :: Orientation
                    , axial_q           :: Int
@@ -45,11 +46,12 @@ data Offset = Odd | Even
     deriving (Show, Read, Eq, Typeable, Data)
 
 cube2axial :: CubeCoordinate -> AxialCoordinate
-cube2axial c =
-  AxialCoordinate { axial_orientation = cube_orientation c
-                  , axial_q = round $ cube_x c
-                  , axial_r = round $ cube_z c
-                  }
+cube2axial c' =
+  let c = hexRound c'
+  in AxialCoordinate { axial_orientation = cube_orientation c
+                     , axial_q = round $ cube_x c
+                     , axial_r = round $ cube_z c
+                     }
 
 
 axial2cube :: AxialCoordinate -> CubeCoordinate
@@ -61,8 +63,9 @@ axial2cube c =
                  }
 
 cube2offset :: Offset -> CubeCoordinate -> OffsetCoordinate
-cube2offset offset c =
-  let orientation = cube_orientation c
+cube2offset offset c' =
+  let c = hexRound c'
+      orientation = cube_orientation c
       op = case offset of
              Even -> (+)
              Odd -> (-)
@@ -85,8 +88,10 @@ offset2cube c =
              Even -> (+)
              Odd -> (-)
       (x,z) = case orientation of
-               Vertical -> (fromIntegral $ offset_q c, offsetF (fromIntegral $ offset_r c) (fromIntegral $ offset_q c) op)
-               Horizontal -> (offsetF (fromIntegral $ offset_q c) (fromIntegral $ offset_r c) op, fromIntegral $ offset_r c)
+               Vertical -> (fromIntegral $ offset_q c
+                           , offsetF (fromIntegral $ offset_r c) (fromIntegral $ offset_q c) op)
+               Horizontal -> (offsetF (fromIntegral $ offset_q c) (fromIntegral $ offset_r c) op
+                             ,fromIntegral $ offset_r c)
       y = -x-z
   in CubeCoordinate { cube_orientation = orientation
                     , cube_x = x
@@ -102,7 +107,7 @@ offsetHelper a b op1 op2 =
 
 
 oddD :: Double -> Bool
-oddD = odd . round
+oddD d = odd $ ((round d) :: Int)
 
 axial2offset :: Offset -> AxialCoordinate -> OffsetCoordinate
 axial2offset o = cube2offset o .  axial2cube
@@ -197,21 +202,78 @@ mapAxialOverCube :: (CubeCoordinate -> [CubeCoordinate]) -> AxialCoordinate -> [
 mapAxialOverCube f c = map (cube2axial) $ f (axial2cube c)
 
 
+hexRound :: CubeCoordinate -> CubeCoordinate
+hexRound c =
+  let  rx = fromIntegral $ (round x :: Int)
+       ry = fromIntegral $ (round y :: Int)
+       rz = fromIntegral $ (round z :: Int)
+       x = cube_x c
+       y = cube_y c
+       z = cube_z c
+       x_diff = abs (rx - x)
+       y_diff = abs (ry - y)
+       z_diff = abs (rz - z)
+       (x', y', z') =
+         if (x_diff > y_diff && x_diff > z_diff)
+            then (-ry-rz, ry, rz)
+            else if (y_diff > z_diff)
+                    then (rx, -rx-rz, rz)
+                    else (rx, ry, -rx-ry)
+  in c { cube_x = x', cube_y = y', cube_z = z' }
+
+multCube :: CubeCoordinate -> Double -> CubeCoordinate
+multCube c d = c { cube_x = cube_x c * d
+                 , cube_y = cube_y c * d
+                 , cube_z = cube_z c * d
+                 }
+
+plusCube :: CubeCoordinate -> CubeCoordinate -> CubeCoordinate
+plusCube a b
+  | (cube_orientation a /= cube_orientation b) = error "plusCube: coordinates must have same orientation"
+  | otherwise = a { cube_x = cube_x a + cube_x b
+                  , cube_y = cube_y a + cube_y b
+                  , cube_z = cube_z a + cube_z b
+                  }
+
+cubeLine :: CubeCoordinate -> CubeCoordinate -> [CubeCoordinate]
+cubeLine a b =
+  let n = (floor $ distance a b)
+      n :: Int
+      f i = a `multCube` (1 - (i / fromIntegral n))
+      g i = b `multCube` (i / fromIntegral n)
+  in [ hexRound $ (f $ fromIntegral i) `plusCube`  (g $ fromIntegral i) | i <- [0..n]] 
+
+
+axialLine :: AxialCoordinate -> AxialCoordinate -> [AxialCoordinate]
+axialLine a = mapAxialOverCube (cubeLine (axial2cube a))
+
+offsetLine :: OffsetCoordinate -> OffsetCoordinate -> [OffsetCoordinate]
+offsetLine a = mapOffsetOverCube (cubeLine (offset2cube a))
+
+{-
+N = hex_distance(A, B)
+for each 0 ≤ i ≤ N:
+    draw hex at hex_round(A * (1 - i/N) + B * i/N)
+-}
+
 instance HexCoordinate CubeCoordinate where
   neighbors = cubeNeighbors
   diagonals = cubeDiagonals
   distance = cubeDistance
-
+  line = cubeLine
+  
 instance HexCoordinate OffsetCoordinate where
   neighbors = offsetNeighbors
   diagonals = offsetDiagonals
   distance a b = fromIntegral $ offsetDistance a b
-
+  line = offsetLine
+  
 instance HexCoordinate AxialCoordinate where
   neighbors = axialNeighbors
   diagonals = axialDiagonals
   distance a b = fromIntegral $ axialDistance a b
-
+  line = axialLine
+  
 
 {--
 even, q -> even, vertical
