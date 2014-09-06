@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
-
 module Hexagon where
 
 import           Prelude
@@ -9,7 +8,6 @@ import           Prelude
 import           FFI
 import           RaphaelJS
 #else
-import           Data.Bits
 import           Fay.FFI   ()
 #endif
 
@@ -26,10 +24,6 @@ data AxialCoordinate =
                    , axial_r           :: Int
 } deriving (Show, Read, Eq, Typeable, Data)
 
-instance HexCoordinate AxialCoordinate where
-  neighbors = axialNeighbors
-  diagonals = axialDiagonals
-  distance = axialDistance
 
 data OffsetCoordinate =
   OffsetCoordinate  { offset_orientation :: Orientation
@@ -38,11 +32,6 @@ data OffsetCoordinate =
                     , offset_r           :: Int
 } deriving (Show, Read, Eq, Typeable, Data)
 
-instance HexCoordinate OffsetCoordinate where
-  neighbors = offsetNeighbors
-  diagonals = offsetDiagonals
-  distance = offsetDistance
-
 data CubeCoordinate =
   CubeCoordinate  { cube_orientation :: Orientation
                   , cube_x           :: Int
@@ -50,16 +39,10 @@ data CubeCoordinate =
                   , cube_z           :: Int
 } deriving (Show, Read, Eq, Typeable, Data)
 
-instance HexCoordinate CubeCoordinate where
-  neighbors = cubeNeighbors
-  diagonals = cubeDiagonals
-  distance = cubeDistance
-
 data Orientation = Horizontal | Vertical
     deriving (Show, Read, Eq, Typeable, Data)
 data Offset = Odd | Even
     deriving (Show, Read, Eq, Typeable, Data)
-
 
 cube2axial :: CubeCoordinate -> AxialCoordinate
 cube2axial c =
@@ -67,6 +50,7 @@ cube2axial c =
                   , axial_q = cube_x c
                   , axial_r = cube_z c
                   }
+
 
 axial2cube :: AxialCoordinate -> CubeCoordinate
 axial2cube c =
@@ -91,8 +75,8 @@ cube2offset offset c =
                       , offset_q = q
                       , offset_r = r
                       }
-  where offsetF :: Int -> Int -> (Double -> Double -> Double) -> Int
-        offsetF a b = offsetHelper a b (+)
+  where offsetF a b = offsetHelper a b (+)
+
 
 offset2cube :: OffsetCoordinate -> CubeCoordinate
 offset2cube c =
@@ -111,11 +95,11 @@ offset2cube c =
                     }
   where offsetF a b = offsetHelper a b (-)
 
-offsetHelper :: Int -> Int -> (Double -> Double -> Double) -> (Double -> Double -> Double) -> Int
+offsetHelper :: Int -> Int -> (Int -> Int -> Int) -> (Int -> Int -> Int) -> Int
 offsetHelper a b op1 op2 =
-  let a' = fromIntegral a
-      b' = fromIntegral b
-  in round $ a' `op1` (b' `op2` (fromIntegral $ b .&. 1)) / 2
+  let c = if (odd b) then 1 else 0
+  in a `op1` (b `op2` c)
+
 
 axial2offset :: Offset -> AxialCoordinate -> OffsetCoordinate
 axial2offset o = cube2offset o .  axial2cube
@@ -159,8 +143,8 @@ offsetNeighbors c =
                [[(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(0,1)]
                ,[(1,1),(1,0),(0,-1),(-1,0),(-1,1),(0,1)]]
       parity = case orientation of
-                 Horizontal -> offset_r c .&. 1
-                 Vertical -> offset_q c .&. 1
+                 Horizontal -> if (odd $ offset_r c) then 1 else 0
+                 Vertical -> if (odd $ offset_q c ) then 1 else 0
       ms' = ms !! parity
   in [ c { offset_q = offset_q c + dq
          , offset_r = offset_r c + dr
@@ -204,6 +188,20 @@ mapAxialOverCube :: (CubeCoordinate -> [CubeCoordinate]) -> AxialCoordinate -> [
 mapAxialOverCube f c = map (cube2axial) $ f (axial2cube c)
 
 
+instance HexCoordinate CubeCoordinate where
+  neighbors = cubeNeighbors
+  diagonals = cubeDiagonals
+  distance = cubeDistance
+
+instance HexCoordinate OffsetCoordinate where
+  neighbors = offsetNeighbors
+  diagonals = offsetDiagonals
+  distance = offsetDistance
+
+instance HexCoordinate AxialCoordinate where
+  neighbors = axialNeighbors
+  diagonals = axialDiagonals
+  distance = axialDistance
 
 
 {--
@@ -211,13 +209,6 @@ even, q -> even, vertical
 odd, q -> odd, vertical
 even, r -> even, horizontal
 odd, r -> odd, horizontal
-
-diagonals = [[+2, -1, -1], [+1, +1, -2], [-1, +2, -1],
-             [-2, +1, +1], [-1, -1, +2], [+1, -2, +1]]
-d = diagonals[direction]
-return Cube(x + d[0], y + d[1], z + d[2])
-
-
 --}
 
 
@@ -277,7 +268,6 @@ hexVerticalDist' o@Horizontal size = 3/4 * (hexHeight' o size)
 hexVerticalDist' o@Vertical size = (hexHeight' o size)
 
 
-
 {-
 tg :: Hexgrid
 tg = Hexgrid {
@@ -309,9 +299,6 @@ minr (c:cs) = foldl min (axial_r c) $ map axial_r $ cs
 
 
 #ifdef FAY
-(.&.) :: Int -> Int -> Int
-(.&.) = ffi "(%1 & %2)"
-
 
 renderGrid :: Paper -> Hexgrid -> Fay [Element]
 renderGrid paper g =
