@@ -1,12 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module HexagonTests where
 
+import           Data.List
 import           Hexagon
 import           Prelude
 import           Test.Hspec
 import           Test.QuickCheck
+
 
 instance Arbitrary Orientation where
   arbitrary = elements [ Horizontal, Vertical ]
@@ -17,8 +18,8 @@ instance Arbitrary Offset where
 instance Arbitrary OffsetCoordinate where
   arbitrary = do
     (offset, orientation) <- arbitrary
-    q <- arbitrary -- `suchThat` (>= 0)
-    r <- arbitrary -- `suchThat` (>= 0)
+    q <- arbitrary
+    r <- arbitrary
     return $
       OffsetCoordinate { offset_offset = offset
                        , offset_orientation = orientation
@@ -45,7 +46,6 @@ instance Arbitrary CubeCoordinate where
                      , cube_y = fromIntegral y
                      , cube_z = fromIntegral z
                      }
-
 
 validCubeCoordinate :: CubeCoordinate -> Bool
 validCubeCoordinate c = (cube_x c) + (cube_y c) + (cube_z c) == 0
@@ -272,6 +272,91 @@ distanceSpec =
        property prop_distance_offset_cube
 
 
+_xx = AxialCoordinate {axial_orientation = Vertical, axial_q = 0, axial_r = 1}
+xx = axial2cube _xx
+rxx = range 1 xx
+nxx = xx : neighbors xx
+
+
+
+{-
+nxx2 = [AxialCoordinate {axial_orientation = Vertical, axial_q = 0, axial_r = 1}
+       ,AxialCoordinate {axial_orientation = Vertical, axial_q = 1, axial_r = 1}
+       ,AxialCoordinate {axial_orientation = Vertical, axial_q = 1, axial_r = 0}
+       ,AxialCoordinate {axial_orientation = Vertical, axial_q = 0, axial_r = 0}
+       ,AxialCoordinate {axial_orientation = Vertical, axial_q = -1, axial_r = 1}
+       ,AxialCoordinate {axial_orientation = Vertical, axial_q = -1, axial_r = 2}
+       ,AxialCoordinate {axial_orientation = Vertical, axial_q = 0, axial_r = 2}]
+
+rxx2 = [AxialCoordinate {axial_orientation = Vertical, axial_q = -1, axial_r = 1},
+        AxialCoordinate {axial_orientation = Vertical, axial_q = -1, axial_r = 0},
+        AxialCoordinate {axial_orientation = Vertical, axial_q = 0, axial_r = 1},
+        AxialCoordinate {axial_orientation = Vertical, axial_q = 0, axial_r = 0},
+        AxialCoordinate {axial_orientation = Vertical, axial_q = 0, axial_r = -1},
+        AxialCoordinate {axial_orientation = Vertical, axial_q = 1, axial_r = 0},
+        AxialCoordinate {axial_orientation = Vertical, axial_q = 1, axial_r = -1}]
+-}
+
+
+prop_range_neighborsC :: CubeCoordinate -> Bool
+prop_range_neighborsC = prop_range_neighbors
+prop_range_neighborsA :: AxialCoordinate -> Bool
+prop_range_neighborsA = prop_range_neighbors
+prop_range_neighborsO :: OffsetCoordinate -> Bool
+prop_range_neighborsO = prop_range_neighbors
+prop_range_neighbors :: (HexCoordinate a, Eq a) => a -> Bool
+prop_range_neighbors c =
+  (range 1 c) `eqList` (c : neighbors c)
+
+prop_range_lengthC, prop_range_lengthA, prop_range_lengthO :: Property
+prop_range_lengthC = forAll posInt  prop_range_lengthC'
+prop_range_lengthA = forAll posInt  prop_range_lengthA'
+prop_range_lengthO = forAll posInt  prop_range_lengthO'
+
+prop_range_length' :: HexCoordinate a => Int -> a -> Bool
+prop_range_length' n c =
+  let  l = (length $ range n c)
+       n' = n + 1
+  in l == ((3 * (n' ^ 2)) - (3*n') + 1)
+
+
+prop_range_valid :: Int -> CubeCoordinate -> Bool
+prop_range_valid n c = and $ map validCubeCoordinate $ range n c
+
+prop_range_lengthC' :: Int -> CubeCoordinate -> Bool
+prop_range_lengthC' = prop_range_length'
+
+prop_range_lengthA' :: Int -> AxialCoordinate -> Bool
+prop_range_lengthA' = prop_range_length'
+
+prop_range_lengthO' :: Int -> OffsetCoordinate -> Bool
+prop_range_lengthO' = prop_range_length'
+
+rangeSpec :: Spec
+rangeSpec = do
+  describe "range calc produces cube coordinates" $
+    it "which are valid" $ property prop_range_valid
+  describe "range returns (3n^2 - 3n + 1) | n' = n-1 coordinates" $ do
+    it "with CubeCoordinate" $ property prop_range_lengthC
+    it "with AxialCoordinate" $ property prop_range_lengthA
+    it "with OffsetCoordinate" $ property prop_range_lengthO
+  describe "range 1 equals neighbors c + c" $ do
+    it "with CubeCoordinate" $ property prop_range_neighborsC
+    it "with AxialCoordinate" $ property prop_range_neighborsA
+    it "with OffsetCoordinate" $ property prop_range_neighborsO
+
+
+
+{-
+for each xmin ≤ x ≤ xmax:
+    for each max(ymin, -x-zmax) ≤ y ≤ min(ymax, -x-zmin):
+        z = -x-y
+        results.append(Cube(x, y, z))
+
+-}
+
+
+
 
 hexagonSpec :: Spec
 hexagonSpec =
@@ -280,6 +365,7 @@ hexagonSpec =
     neighborsSpec
     distanceSpec
     diagonalsSpec
+    rangeSpec
 
 testHexagon  :: IO ()
 testHexagon = hspec hexagonSpec
@@ -287,5 +373,10 @@ testHexagon = hspec hexagonSpec
 eqList :: Eq a => [a] -> [a] -> Bool
 eqList cs ds = (length cs == length ds) && (and [elem c ds | c <- cs ])
 
+posInt :: Gen Int
+posInt = arbitrary `suchThat` (>= 0)
 
 
+
+--a = OffsetCoordinate Horizontal Odd 0 0
+--b = AxialCoordinate Horizontal 5 2

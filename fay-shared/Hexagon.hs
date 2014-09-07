@@ -18,6 +18,7 @@ class HexCoordinate c where
   diagonals :: c -> [c]
   distance :: c -> c -> Double
   line :: c -> c -> [c]
+  range :: Int -> c -> [c]
   
 data AxialCoordinate =
   AxialCoordinate  { axial_orientation :: Orientation
@@ -53,7 +54,6 @@ cube2axial c' =
                      , axial_r = round $ cube_z c
                      }
 
-
 axial2cube :: AxialCoordinate -> CubeCoordinate
 axial2cube c =
   CubeCoordinate { cube_orientation = axial_orientation c
@@ -80,7 +80,6 @@ cube2offset offset c' =
                       }
   where offsetF a b = offsetHelper a b (+)
 
-
 offset2cube :: OffsetCoordinate -> CubeCoordinate
 offset2cube c =
   let orientation = offset_orientation c
@@ -103,18 +102,17 @@ offset2cube c =
 offsetHelper  :: Double -> Double -> (Double -> Double -> Double) -> (Double -> Double -> Double) -> Double
 offsetHelper a b op1 op2 =
   let c = if (oddD b) then 1 else 0
+      oddD :: Double -> Bool
+      oddD d = odd $ ((round d) :: Int)
   in a `op1` (b `op2` c)
 
 
-oddD :: Double -> Bool
-oddD d = odd $ ((round d) :: Int)
 
 axial2offset :: Offset -> AxialCoordinate -> OffsetCoordinate
 axial2offset o = cube2offset o .  axial2cube
 
 offset2axial :: OffsetCoordinate -> AxialCoordinate
 offset2axial = cube2axial . offset2cube
-
 
 cubeNeighbors :: CubeCoordinate -> [CubeCoordinate]
 cubeNeighbors c =
@@ -132,38 +130,8 @@ axialNeighbors c =
          , axial_r = axial_r c + dr
          } | (dq,dr) <- ms ]
 
-
 offsetNeighbors :: OffsetCoordinate -> [OffsetCoordinate]
-offsetNeighbors c =
-  map (cube2offset (offset_offset c)) $ cubeNeighbors (offset2cube c)
-
-
-{-
-
-offsetNeighbors c =
-  let orientation = offset_orientation c
-      offset = offset_offset c
-      ms = case (offset, orientation) of
-             (Even, Horizontal) ->
-               [[(1,0),(1,-1),(0,-1),(-1,0),(1,1),(2,1)]
-               ,[(1,0),(-1,-1),(-2,-1),(-1,0),(-1,1),(0,1)]]
-             (Even, Vertical) ->
-               [[(1,2),(1,1),(0,-1),(-1,0),(-1,1),(0,1)]
-               ,[(1,0),(1,-1),(0,-1),(-1,-2),(-1,-1),(0,1)]]
-             (Odd, Horizontal) ->
-               [[(1,0),(-1,-1),(-2,-1),(-1,0),(-1,1),(0,1)]
-               ,[(1,0),(-1,-1),(-2,-1),(-1,0),(-1,1),(0,1)]]
-             (Odd, Vertical) ->
-               [[(1,0),(1,-1),(0,-1),(-1,-2),(-1,-1),(0,1)]
-               ,[(1,2),(1,1),(0,-1),(-1,0),(-1,1),(0,1)]]
-      parity = case orientation of
-                 Horizontal -> if (odd $ offset_r c) then 1 else 0
-                 Vertical -> if (odd $ offset_q c ) then 1 else 0
-      ms' = ms !! parity
-  in [ c { offset_q = offset_q c + dq
-         , offset_r = offset_r c + dr
-         } | (dq,dr) <- ms' ]
--}
+offsetNeighbors = mapOffsetOverCube cubeNeighbors
 
 cubeDiagonals :: CubeCoordinate -> [CubeCoordinate]
 cubeDiagonals c =
@@ -180,7 +148,6 @@ offsetDiagonals = mapOffsetOverCube cubeDiagonals
 axialDiagonals :: AxialCoordinate -> [AxialCoordinate]
 axialDiagonals = mapAxialOverCube cubeDiagonals
 
-
 cubeDistance :: CubeCoordinate -> CubeCoordinate -> Double
 cubeDistance c1 c2 =
   maximum [ abs $ (cube_x c1) - (cube_x c2)
@@ -193,7 +160,6 @@ axialDistance c1 c2 = round $ cubeDistance (axial2cube c1) (axial2cube c2)
 
 offsetDistance :: OffsetCoordinate -> OffsetCoordinate -> Int
 offsetDistance c1 c2 = round $ cubeDistance (offset2cube c1) (offset2cube c2)
-
 
 mapOffsetOverCube :: (CubeCoordinate -> [CubeCoordinate]) -> OffsetCoordinate -> [OffsetCoordinate]
 mapOffsetOverCube f c = map (cube2offset (offset_offset c)) $ f (offset2cube c)
@@ -241,8 +207,7 @@ cubeLine a b =
       n :: Int
       f i = a `multCube` (1 - (i / fromIntegral n))
       g i = b `multCube` (i / fromIntegral n)
-  in [ hexRound $ (f $ fromIntegral i) `plusCube`  (g $ fromIntegral i) | i <- [0..n]] 
-
+  in [ hexRound $ (f $ fromIntegral i) `plusCube`  (g $ fromIntegral i) | i <- [0..n]]
 
 axialLine :: AxialCoordinate -> AxialCoordinate -> [AxialCoordinate]
 axialLine a = mapAxialOverCube (cubeLine (axial2cube a))
@@ -250,40 +215,52 @@ axialLine a = mapAxialOverCube (cubeLine (axial2cube a))
 offsetLine :: OffsetCoordinate -> OffsetCoordinate -> [OffsetCoordinate]
 offsetLine a = mapOffsetOverCube (cubeLine (offset2cube a))
 
-{-
-N = hex_distance(A, B)
-for each 0 ≤ i ≤ N:
-    draw hex at hex_round(A * (1 - i/N) + B * i/N)
+cubeRange :: Int -> CubeCoordinate -> [CubeCoordinate]
+cubeRange n c =
+  let xs = [-n .. n]
+      ys x = [(max (-n) (-x-n)) .. (min n (-x+n))]
+      zs x y = -x-y
+  in [ c { cube_x = cube_x c + (fromIntegral x)
+         , cube_y = cube_y c + (fromIntegral y) 
+         , cube_z = cube_z c + (fromIntegral $ zs x y)
+         } | x <- xs, y <- ys x]
+
+axialRange :: Int -> AxialCoordinate -> [AxialCoordinate]
+axialRange n = mapAxialOverCube (cubeRange n)
+
+offsetRange :: Int -> OffsetCoordinate -> [OffsetCoordinate]
+offsetRange n = mapOffsetOverCube (cubeRange n)
+
+
+
+{--
+for each -N ≤ Δx ≤ N:
+    for each max(-N, -Δx-N) ≤ Δy ≤ min(N, -Δx+N):
+        Δz = -Δx-Δy
+        results.append(H.add(Cube(Δx, Δy, Δz)))
 -}
 
+        
 instance HexCoordinate CubeCoordinate where
   neighbors = cubeNeighbors
   diagonals = cubeDiagonals
   distance = cubeDistance
   line = cubeLine
+  range = cubeRange
   
 instance HexCoordinate OffsetCoordinate where
   neighbors = offsetNeighbors
   diagonals = offsetDiagonals
   distance a b = fromIntegral $ offsetDistance a b
   line = offsetLine
+  range = offsetRange
   
 instance HexCoordinate AxialCoordinate where
   neighbors = axialNeighbors
   diagonals = axialDiagonals
   distance a b = fromIntegral $ axialDistance a b
   line = axialLine
-  
-
-{--
-even, q -> even, vertical
-odd, q -> odd, vertical
-even, r -> even, horizontal
-odd, r -> odd, horizontal
---}
-
-
-
+  range = axialRange
 
 --
 -- The Hexgrid
