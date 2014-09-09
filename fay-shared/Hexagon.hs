@@ -19,7 +19,7 @@ class HexCoordinate c where
   distance :: c -> c -> Double
   line :: c -> c -> [c]
   range :: Int -> c -> [c]
-  
+
 data AxialCoordinate =
   AxialCoordinate  { axial_orientation :: Orientation
                    , axial_q           :: Int
@@ -221,7 +221,7 @@ cubeRange n c =
       ys x = [(max (-n) (-x-n)) .. (min n (-x+n))]
       zs x y = -x-y
   in [ c { cube_x = cube_x c + (fromIntegral x)
-         , cube_y = cube_y c + (fromIntegral y) 
+         , cube_y = cube_y c + (fromIntegral y)
          , cube_z = cube_z c + (fromIntegral $ zs x y)
          } | x <- xs, y <- ys x]
 
@@ -233,28 +233,21 @@ offsetRange n = mapOffsetOverCube (cubeRange n)
 
 
 
-{--
-for each -N ≤ Δx ≤ N:
-    for each max(-N, -Δx-N) ≤ Δy ≤ min(N, -Δx+N):
-        Δz = -Δx-Δy
-        results.append(H.add(Cube(Δx, Δy, Δz)))
--}
 
-        
 instance HexCoordinate CubeCoordinate where
   neighbors = cubeNeighbors
   diagonals = cubeDiagonals
   distance = cubeDistance
   line = cubeLine
   range = cubeRange
-  
+
 instance HexCoordinate OffsetCoordinate where
   neighbors = offsetNeighbors
   diagonals = offsetDiagonals
   distance a b = fromIntegral $ offsetDistance a b
   line = offsetLine
   range = offsetRange
-  
+
 instance HexCoordinate AxialCoordinate where
   neighbors = axialNeighbors
   diagonals = axialDiagonals

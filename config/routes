@@ -6,3 +6,5 @@
 
 / HomeR GET
 /fay-command FaySiteR FaySite getFaySite
+
+/tests/hexagon HexagonTestR GET

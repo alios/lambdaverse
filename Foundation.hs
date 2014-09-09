@@ -64,7 +64,6 @@ includeScripts =
                  [ js_modernizr_2_6_2_min_js
                  , js_bootstrap_js
                  , js_raphael_js
-                 , js_backbone_js
                  ])
 
 -- Please see the documentation for the Yesod typeclass. There are a number
