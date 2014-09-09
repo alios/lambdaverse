@@ -80,10 +80,9 @@ conversionSpec =
     it "convert from offset to axial and back" $ property prop_o2a
 
 
-
 neighborsSpec :: Spec
 neighborsSpec =
-  describe "testing distance by" $ do
+  describe "testing neighbors by" $ do
     it "comapring cubeNeighbors to axialNeighbors from cube" $
        property prop_neighbors_cube_axial
     it "comapring cubeNeighbors to offsetNeighbors from cube" $
