@@ -48,6 +48,27 @@ instance Arbitrary CubeCoordinate where
                      , cube_z = fromIntegral z
                      }
 
+
+posInt :: Gen Int
+posInt = arbitrary `suchThat` (>= 0)
+
+
+
+hexagonSpec :: Spec
+hexagonSpec =
+  describe "testing Hexagon" $ do
+    conversionSpec
+    neighborsSpec
+    distanceSpec
+    diagonalsSpec
+    rangeSpec
+
+testHexagon  :: IO ()
+testHexagon = hspec hexagonSpec
+
+
+
+
 conversionSpec :: Spec
 conversionSpec =
   describe "testing hexagon coordinate conversions" $ do
@@ -121,23 +142,11 @@ rangeSpec = do
     it "with AxialCoordinate" $ property prop_range_neighborsA
     it "with OffsetCoordinate" $ property prop_range_neighborsO
 
-hexagonSpec :: Spec
-hexagonSpec =
-  describe "testing Hexagon" $ do
-    conversionSpec
-    neighborsSpec
-    distanceSpec
-    diagonalsSpec
-    rangeSpec
-
-testHexagon  :: IO ()
-testHexagon = hspec hexagonSpec
-
-
-posInt :: Gen Int
-posInt = arbitrary `suchThat` (>= 0)
-
-
+prop_range_lengthC :: Property
 prop_range_lengthC = forAll posInt  prop_range_lengthC'
+prop_range_lengthA :: Property
 prop_range_lengthA = forAll posInt  prop_range_lengthA'
+prop_range_lengthO :: Property
 prop_range_lengthO = forAll posInt  prop_range_lengthO'
+
+
