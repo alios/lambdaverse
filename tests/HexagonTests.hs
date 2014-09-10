@@ -125,8 +125,7 @@ distanceSpec =
        property prop_distance_axial_offset
     it "comapring offsetDistance to axialDistance from offset" $
        property prop_distance_offset_axial
-    it "comapring offsetDistance to cubeDistance from offset" $
-       property prop_distance_offset_cube
+    it "comapring offsetDistance to cubeDistance from offset" $       property prop_distance_offset_cube
 
 rangeSpec :: Spec
 rangeSpec = do
@@ -147,5 +146,6 @@ prop_range_lengthA :: Property
 prop_range_lengthA = forAll posInt  prop_range_lengthA'
 prop_range_lengthO :: Property
 prop_range_lengthO = forAll posInt  prop_range_lengthO'
+
 
 

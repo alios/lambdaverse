@@ -27,7 +27,7 @@ onLoad _ = do
   conversionSpec
   neighborsSpec
   distanceSpec
-
+  diagonalsSpec
 
 testProp a desc p cs  =
   let ps = and $ map p cs
@@ -56,7 +56,7 @@ neighborsSpec = do
   cs <- sequence $ replicate 100 $ randomCubeCoordinate
   os <- sequence $ replicate 100 $ randomOffsetCoordinate
   as <- sequence $ replicate 100 $ randomAxialCoordinate
-  qunit_test "testing heighbors by" $ \a -> do
+  qunit_test "testing neighbors by" $ \a -> do
     testProp a "comapring cubeNeighbors to axialNeighbors from cube" prop_neighbors_cube_axial cs
     testProp a "comapring cubeNeighbors to offsetNeighbors (odd) from cube"
       (prop_neighbors_cube_offset Odd) cs
@@ -69,7 +69,6 @@ neighborsSpec = do
       (prop_neighbors_axial_offset Even) as
     testProp a "comapring offsetNeighbors to axialNeighbors from offset" prop_neighbors_offset_axial os
     testProp a "comapring offsetNeighbors to cubeNeighbors from offset" prop_neighbors_offset_cube os
-
 
 distanceSpec :: Fay ()
 distanceSpec = do
@@ -96,6 +95,27 @@ distanceSpec = do
         prop_distance_offset_axial os1 os2
     test2Prop a "comapring offsetDistance to cubeDistance from offset"
         prop_distance_offset_cube os1 os2
+
+
+diagonalsSpec :: Fay ()
+diagonalsSpec = do
+  cs <- sequence $ replicate 100 $ randomCubeCoordinate
+  os <- sequence $ replicate 100 $ randomOffsetCoordinate
+  as <- sequence $ replicate 100 $ randomAxialCoordinate
+  qunit_test "testing diagonals by" $ \a -> do
+    testProp a "comapring cubeDiagonals to axialDiagonals from cube" prop_diagonals_cube_axial cs
+    testProp a "comapring cubeDiagonals to offsetDiagonals (odd) from cube"
+      (prop_diagonals_cube_offset Odd) cs
+    testProp a "comapring cubeDiagonals to offsetDiagonals (even) from cube"
+      (prop_diagonals_cube_offset Even) cs
+    testProp a "comapring axialDiagonals to cubeDiagonals from axial" prop_diagonals_axial_cube as
+    testProp a "comapring axialDiagonals to offsetDiagonals (odd) from axial"
+      (prop_diagonals_axial_offset Odd) as
+    testProp a "comapring axialDiagonals to offsetDiagonals (even) from axial"
+      (prop_diagonals_axial_offset Even) as
+    testProp a "comapring offsetDiagonals to axialDiagonals from offset" prop_diagonals_offset_axial os
+    testProp a "comapring offsetDiagonals to cubeDiagonals from offset" prop_diagonals_offset_cube os
+
 
 test2Prop :: Assert -> String -> (a -> b -> Bool) -> [a] -> [b] -> Fay ()
 test2Prop a desc p cs ds =
