@@ -29,6 +29,9 @@ hexagonSpec = do
   neighborsSpec
   distanceSpec
   diagonalsSpec
+  rangeSpec
+
+
 
 conversionSpec :: Fay ()
 conversionSpec = do
@@ -90,6 +93,23 @@ distanceSpec = do
     test2Prop a "comapring offsetDistance to cubeDistance from offset"
         prop_distance_offset_cube os1 os2
 
+rangeSpec :: Fay ()
+rangeSpec = do
+  cs <- sequence $ replicate 100 $ randomCubeCoordinate
+  os <- sequence $ replicate 100 $ randomOffsetCoordinate
+  as <- sequence $ replicate 100 $ randomAxialCoordinate
+  rs' <- sequence $ replicate 10 $ randomPos 10
+  let rs = map abs rs'
+  qunit_test "range calc produces cube coordinates" $ \a -> do
+    test2Prop a "which are valid" prop_range_valid rs cs
+  qunit_test "range returns (3n^2 - 3n + 1) | n' = n-1 coordinates" $ \a -> do
+    test2Prop a "with CubeCoordinate" prop_range_lengthC' rs cs
+    test2Prop a "with AxialCoordinate" prop_range_lengthA' rs as
+    test2Prop a "with OffsetCoordinate" prop_range_lengthO' rs os
+  qunit_test "range 1 equals neighbors c + c" $ \a -> do
+    testProp a "with CubeCoordinate" prop_range_neighborsC cs
+    testProp a "with AxialCoordinate" prop_range_neighborsA as
+    testProp a "with OffsetCoordinate" prop_range_neighborsO os
 
 diagonalsSpec :: Fay ()
 diagonalsSpec = do
@@ -132,10 +152,21 @@ test2Prop a desc p cs ds =
 randomD' :: Fay Double
 randomD' = ffi "window.Math.random()"
 
+
+randomB :: Fay Bool
+randomB = do
+  d <- randomD'
+  return $ d > 0.5
+
 randomD :: Double -> Fay Double
 randomD n = do
   d <- randomD'
-  return $ d * n
+  s <- randomB
+  return $ if s then d * n else d * n * (-1.0)
+
+randomPos n = do
+  i <- randomI n
+  return $ abs i
 
 randomI :: Int -> Fay Int
 randomI n = do

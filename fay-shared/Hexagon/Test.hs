@@ -165,36 +165,40 @@ prop_distance_offset_cube a b =
   let cd = cubeDistance (offset2cube a) (offset2cube b)
   in cd == (fromIntegral $ offsetDistance a b)
 
-
 prop_range_neighborsC :: CubeCoordinate -> Bool
-prop_range_neighborsC = prop_range_neighbors
-prop_range_neighborsA :: AxialCoordinate -> Bool
-prop_range_neighborsA = prop_range_neighbors
-prop_range_neighborsO :: OffsetCoordinate -> Bool
-prop_range_neighborsO = prop_range_neighbors
-prop_range_neighbors :: (HexCoordinate a, Eq a) => a -> Bool
-prop_range_neighbors c =
-  (range 1 c) `eqList` (c : neighbors c)
+prop_range_neighborsC c =
+  (cubeRange 1 c) `eqList` (c : cubeNeighbors c)
 
-prop_range_length' :: HexCoordinate a => Int -> a -> Bool
-prop_range_length' n c =
-  let  l = (length $ range n c)
+prop_range_neighborsO :: OffsetCoordinate -> Bool
+prop_range_neighborsO c =
+  (offsetRange 1 c) `eqList` (c : offsetNeighbors c)
+
+prop_range_neighborsA :: AxialCoordinate -> Bool
+prop_range_neighborsA c =
+  (axialRange 1 c) `eqList` (c : axialNeighbors c)
+
+prop_range_lengthC' :: Int -> CubeCoordinate -> Bool
+prop_range_lengthC' n c =
+  let  l = (length $ cubeRange n c)
+       n' = n + 1
+  in l == ((3 * (n' ^ (2 ::Int) )) - (3*n') + 1)
+
+prop_range_lengthA' :: Int -> AxialCoordinate -> Bool
+prop_range_lengthA' n c =
+  let  l = (length $ axialRange n c)
+       n' = n + 1
+  in l == ((3 * (n' ^ (2 ::Int) )) - (3*n') + 1)
+
+prop_range_lengthO' :: Int -> OffsetCoordinate -> Bool
+prop_range_lengthO' n c =
+  let  l = (length $ offsetRange n c)
        n' = n + 1
   in l == ((3 * (n' ^ (2 ::Int) )) - (3*n') + 1)
 
 prop_range_valid :: Int -> CubeCoordinate -> Bool
-prop_range_valid n c = and $ map validCubeCoordinate $ range n c
-
-prop_range_lengthC' :: Int -> CubeCoordinate -> Bool
-prop_range_lengthC' = prop_range_length'
-
-prop_range_lengthA' :: Int -> AxialCoordinate -> Bool
-prop_range_lengthA' = prop_range_length'
-
-prop_range_lengthO' :: Int -> OffsetCoordinate -> Bool
-prop_range_lengthO' = prop_range_length'
-
+prop_range_valid n c = and $ map validCubeCoordinate $ cubeRange n c
 
 eqList :: Eq a => [a] -> [a] -> Bool
 eqList cs ds = (length cs == length ds) && (and [elem c ds | c <- cs ])
+
 
