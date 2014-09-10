@@ -82,18 +82,20 @@ distanceSpec = do
   qunit_test "testing distance by" $ \a -> do
     test2Prop a "comapring cubeDistance to axialDistance from cube"
         prop_distance_cube_axial cs1 cs2
-    test2Prop a "comapring cubeDistance to offsetDistance from cube"
+    test2Prop a "comapring cubeDistance to offsetDistance (odd) from cube"
         (prop_distance_cube_offset Odd) cs1 cs2
+    test2Prop a "comapring cubeDistance to offsetDistance (even) from cube"
+        (prop_distance_cube_offset Even) cs1 cs2
     test2Prop a "comapring axialDistance to cubeDistance from axial"
         prop_distance_axial_cube as1 as2
-    test2Prop a "comapring axialDistance to offsetDistance from axial"
+    test2Prop a "comapring axialDistance to offsetDistance (odd) from axial"
         (prop_distance_axial_offset Odd) as1 as2
+    test2Prop a "comapring axialDistance to offsetDistance (even) from axial"
+        (prop_distance_axial_offset Even) as1 as2
     test2Prop a "comapring offsetDistance to axialDistance from offset"
         prop_distance_offset_axial os1 os2
     test2Prop a "comapring offsetDistance to cubeDistance from offset"
         prop_distance_offset_cube os1 os2
-
-
 
 test2Prop :: Assert -> String -> (a -> b -> Bool) -> [a] -> [b] -> Fay ()
 test2Prop a desc p cs ds =
