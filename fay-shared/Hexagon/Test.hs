@@ -137,32 +137,33 @@ prop_diagonals_offset_cube c =
 
 prop_distance_axial_cube :: AxialCoordinate -> AxialCoordinate -> Bool
 prop_distance_axial_cube a b =
-  let cd = distance (axial2cube a) (axial2cube b)
-  in cd == distance a b
+  let cd = cubeDistance (axial2cube a) (axial2cube b)
+  in cd == (fromIntegral $ axialDistance a b)
 
 prop_distance_axial_offset :: Offset -> AxialCoordinate -> AxialCoordinate -> Bool
 prop_distance_axial_offset o a b =
-  let cd = distance (axial2offset o a) (axial2offset o b)
-  in cd == distance a b
+  let cd = offsetDistance (axial2offset o a) (axial2offset o b)
+  in (fromIntegral cd ) == axialDistance a b
 
 prop_distance_cube_axial :: CubeCoordinate -> CubeCoordinate -> Bool
 prop_distance_cube_axial a b =
-  let cd = distance (cube2axial a) (cube2axial b)
-  in cd == distance a b
+  let cd = axialDistance (cube2axial a) (cube2axial b)
+  in (fromIntegral cd) == cubeDistance a b
+
 prop_distance_cube_offset :: Offset -> CubeCoordinate -> CubeCoordinate -> Bool
 prop_distance_cube_offset o a b =
-  let cd = distance (cube2offset o a) (cube2offset o b)
-  in cd == distance a b
+  let cd = fromIntegral $ offsetDistance (cube2offset o a) (cube2offset o b)
+  in cd == cubeDistance a b
 
 prop_distance_offset_axial :: OffsetCoordinate -> OffsetCoordinate -> Bool
 prop_distance_offset_axial a b =
-  let cd = distance (offset2axial a) (offset2axial b)
-  in cd == distance a b
+  let cd = fromIntegral $ axialDistance (offset2axial a) (offset2axial b)
+  in cd == offsetDistance a b
 
 prop_distance_offset_cube :: OffsetCoordinate -> OffsetCoordinate -> Bool
 prop_distance_offset_cube a b =
-  let cd = distance (offset2cube a) (offset2cube b)
-  in cd == distance a b
+  let cd = cubeDistance (offset2cube a) (offset2cube b)
+  in cd == (fromIntegral $ offsetDistance a b)
 
 
 prop_range_neighborsC :: CubeCoordinate -> Bool

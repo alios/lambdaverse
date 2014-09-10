@@ -26,10 +26,14 @@ onLoad _ = do
   putStrLn "Initializing ..."
   conversionSpec
   neighborsSpec
+  distanceSpec
+
 
 testProp a desc p cs  =
   let ps = and $ map p cs
   in assert_ok a ps desc
+
+
 
 
 conversionSpec :: Fay ()
@@ -67,8 +71,35 @@ neighborsSpec = do
     testProp a "comapring offsetNeighbors to cubeNeighbors from offset" prop_neighbors_offset_cube os
 
 
+distanceSpec :: Fay ()
+distanceSpec = do
+  cs1 <- sequence $ replicate 100 $ randomCubeCoordinate
+  os1 <- sequence $ replicate 100 $ randomOffsetCoordinate
+  as1 <- sequence $ replicate 100 $ randomAxialCoordinate
+  cs2 <- sequence $ replicate 100 $ randomCubeCoordinate
+  os2 <- sequence $ replicate 100 $ randomOffsetCoordinate
+  as2 <- sequence $ replicate 100 $ randomAxialCoordinate
+  qunit_test "testing distance by" $ \a -> do
+    test2Prop a "comapring cubeDistance to axialDistance from cube"
+        prop_distance_cube_axial cs1 cs2
+    test2Prop a "comapring cubeDistance to offsetDistance from cube"
+        (prop_distance_cube_offset Odd) cs1 cs2
+    test2Prop a "comapring axialDistance to cubeDistance from axial"
+        prop_distance_axial_cube as1 as2
+    test2Prop a "comapring axialDistance to offsetDistance from axial"
+        (prop_distance_axial_offset Odd) as1 as2
+    test2Prop a "comapring offsetDistance to axialDistance from offset"
+        prop_distance_offset_axial os1 os2
+    test2Prop a "comapring offsetDistance to cubeDistance from offset"
+        prop_distance_offset_cube os1 os2
 
 
+
+test2Prop :: Assert -> String -> (a -> b -> Bool) -> [a] -> [b] -> Fay ()
+test2Prop a desc p cs ds =
+  let _test2Prop [] = []
+      _test2Prop ((c,d):xs) = (p c d) : (_test2Prop xs)
+  in assert_ok a (and $ _test2Prop $ zip cs ds) desc
 
 main :: Fay ()
 main = do
