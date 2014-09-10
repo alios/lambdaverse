@@ -7,16 +7,13 @@ import           Language.Fay.Yesod
 import           Prelude
 import           SharedTypes
 
+main :: Fay ()
+main = do
+  putStrLn "Starting lamadevs hexagon tests"
+  addWindowEvent "load" onLoad
+  return ()
+
 data Event
-
-
-
-data Assert
-qunit_test :: String -> (Assert -> Fay ()) -> Fay ()
-qunit_test = ffi "QUnit.test( %1, %2 )"
-
-assert_ok :: Assert -> Bool -> String -> Fay ()
-assert_ok = ffi "%1.ok( %2, %3 )"
 
 addWindowEvent :: String -> (Event -> Fay ()) -> Fay ()
 addWindowEvent = ffi "window.addEventListener(%1, %2)"
@@ -24,17 +21,14 @@ addWindowEvent = ffi "window.addEventListener(%1, %2)"
 onLoad :: Event -> Fay ()
 onLoad _ = do
   putStrLn "Initializing ..."
+  hexagonSpec
+
+hexagonSpec :: Fay ()
+hexagonSpec = do
   conversionSpec
   neighborsSpec
   distanceSpec
   diagonalsSpec
-
-testProp a desc p cs  =
-  let ps = and $ map p cs
-  in assert_ok a ps desc
-
-
-
 
 conversionSpec :: Fay ()
 conversionSpec = do
@@ -117,17 +111,22 @@ diagonalsSpec = do
     testProp a "comapring offsetDiagonals to cubeDiagonals from offset" prop_diagonals_offset_cube os
 
 
+data Assert
+qunit_test :: String -> (Assert -> Fay ()) -> Fay ()
+qunit_test = ffi "QUnit.test( %1, %2 )"
+
+assert_ok :: Assert -> Bool -> String -> Fay ()
+assert_ok = ffi "%1.ok( %2, %3 )"
+
+testProp a desc p cs  =
+  let ps = and $ map p cs
+  in assert_ok a ps desc
+
 test2Prop :: Assert -> String -> (a -> b -> Bool) -> [a] -> [b] -> Fay ()
 test2Prop a desc p cs ds =
   let _test2Prop [] = []
       _test2Prop ((c,d):xs) = (p c d) : (_test2Prop xs)
   in assert_ok a (and $ _test2Prop $ zip cs ds) desc
-
-main :: Fay ()
-main = do
-  putStrLn "Hello Console!"
-  addWindowEvent "load" onLoad
-  return ()
 
 
 randomD' :: Fay Double
