@@ -6,7 +6,7 @@ module Hexagon where
 import           Prelude
 #ifdef FAY
 import           FFI
-import           RaphaelJS
+import           Snap
 #else
 import           Fay.FFI   ()
 #endif
@@ -506,6 +506,7 @@ renderHexagonPolygon paper g center =
               args = (x_i, y_i)
           in if (i == 0) then MoveTo args else LineTo args
 
+{-
 setPaperViewBox :: Paper -> ScreenBox -> Fay ()
 setPaperViewBox paper vb =
   let x = pixel_x . viewbox_pos $ vb
@@ -513,6 +514,6 @@ setPaperViewBox paper vb =
       w = pixel_x . viewbox_size $ vb
       h = pixel_y . viewbox_size $ vb
   in setViewBox paper x y w h False
-
+-}
 
 #endif

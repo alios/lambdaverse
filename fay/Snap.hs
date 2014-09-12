@@ -1,7 +1,7 @@
 {-# LANGUAGE EmptyDataDecls #-}
 
 
-module RaphaelJS where
+module Snap where
 import           FFI
 import           Prelude
 
@@ -10,20 +10,23 @@ type Coordinate = (Int, Int)
 data Paper
 
 
-raphael :: String -> Int -> Int -> Fay Paper
-raphael = ffi "window.Raphael(%1, %2, %3)"
+snapSelector :: String -> Fay Paper
+snapSelector = ffi "window['Snap'](%1)"
 
 --
 
 data Element
-path :: String -> Paper -> Fay Element
-path = ffi "%2.path(%1)"
+path' :: String -> Paper -> Fay Element
+path' = ffi "%2.path(%1)"
 
+path spec p = do
+  p <- path' spec p
+  attr p "fill" "none"
+  attr p "stroke" "grey"
+  return p
 
--- Paper.setViewBox(x, y, w, h, fit)
-
-setViewBox :: Paper -> Int -> Int -> Int -> Int -> Bool -> Fay ()
-setViewBox = ffi "%1.setViewBox(%2, %3, %4, %5)"
+attr :: Element -> String -> String -> Fay ()
+attr = ffi "%1.attr(%2,%3)"
 
 
 paperText :: Paper -> Int -> Int -> String -> Fay Element

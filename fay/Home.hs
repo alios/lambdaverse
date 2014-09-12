@@ -4,8 +4,8 @@ import           FFI
 import           Hexagon
 import           Language.Fay.Yesod
 import           Prelude
-import           RaphaelJS
 import           SharedTypes
+import           Snap
 
 data Event
 
@@ -41,8 +41,8 @@ onLoad _ = do
       z = 2
       vb = mkScreenBox (-100) (-100) (px * z) (py * z)
   putStrLn "Creating Rendering Context ..."
-  paper <-  raphael "map" px py
-  setPaperViewBox paper vb
+  paper <-  snapSelector ("#map")
+ -- setPaperViewBox paper vb
   putStrLn "Creating Map Objects ..."
   es <- renderGrid g vb Even paper
   putStrLn $ "The document has loaded " ++ show (length es) ++ " hexes."
@@ -50,6 +50,6 @@ onLoad _ = do
 
 main :: Fay ()
 main = do
-  putStrLn "Hello Console!"
+  putStrLn "Starting up lambdaverse client..."
   addWindowEvent "load" onLoad
   return ()
