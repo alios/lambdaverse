@@ -1,0 +1,8 @@
+<div id="main" class="container-fluid">
+  <div id="main_header" class="row">
+    <div class="page-header">
+      <h1>_{MsgApplicationName} <small>QUnit tests
+
+    <div id="qunit">
+    <div id="qunit-fixture">
+

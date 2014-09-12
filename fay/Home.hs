@@ -14,28 +14,38 @@ addWindowEvent :: String -> (Event -> Fay ()) -> Fay ()
 addWindowEvent = ffi "window.addEventListener(%1, %2)"
 
 
+
+renderGrid :: Hexgrid -> ScreenBox -> Offset -> Paper -> Fay [Element]
+renderGrid g vb offset paper =
+  let str c = ((show . offset_q $ c) ++ "/" ++ (show . offset_r $ c))
+      cs = hexesFromScreenBox g offset vb
+      render c = renderHexagon paper g (str c) (offset2screen g c)
+  in sequence [ render c | c <- cs ]
+
 testGrid :: Hexgrid
 testGrid = Hexgrid {
   grid_orientation = Horizontal,
-  grid_hex_size = 80,
+  grid_hex_size = 64,
   grid_width = 100,
   grid_height = 100
   }
+
 
 onLoad :: Event -> Fay ()
 onLoad _ = do
   putStrLn "Initializing ..."
 
   let g = testGrid
-      initZoom = 8
-      initX = 0
-      initY = 0
+      px = 700
+      py = 400
+      z = 2
+      vb = mkScreenBox (-100) (-100) (px * z) (py * z)
   putStrLn "Creating Rendering Context ..."
-  paper <-  raphael "map" 800 600
-  setPaperViewBox paper g (initX, initY) initZoom
+  paper <-  raphael "map" px py
+  setPaperViewBox paper vb
   putStrLn "Creating Map Objects ..."
-  es <- renderGrid paper g
-  putStrLn "The document has loaded"
+  es <- renderGrid g vb Even paper
+  putStrLn $ "The document has loaded " ++ show (length es) ++ " hexes."
   return ()
 
 main :: Fay ()

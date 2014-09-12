@@ -26,6 +26,9 @@ setViewBox :: Paper -> Int -> Int -> Int -> Int -> Bool -> Fay ()
 setViewBox = ffi "%1.setViewBox(%2, %3, %4, %5)"
 
 
+paperText :: Paper -> Int -> Int -> String -> Fay Element
+paperText = ffi "%1.text(%2, %3, %4)"
+
 data PathCommand =
   MoveTo (Int, Int) |
   ClosePath |
@@ -41,3 +44,5 @@ renderPathCmd (LineTo (x, y)) = 'L' : show x ++ "," ++ show y
 
 pathCommands :: [PathCommand] -> Paper -> Fay Element
 pathCommands = path . renderPath
+
+

@@ -119,7 +119,8 @@ cubeNeighbors c =
   let ms = [(1,-1,0),(1,0,-1),(0,1,-1)
            ,(-1,1,0),(-1,0,1), (0,-1,1)]
   in [ c { cube_x = cube_x c + dx
-         , cube_y = cube_y c + dy                                                                                    , cube_z = cube_z c + dz
+         , cube_y = cube_y c + dy
+         , cube_z = cube_z c + dz
          } | (dx,dy,dz) <- ms]
 
 axialNeighbors :: AxialCoordinate -> [AxialCoordinate]
@@ -200,7 +201,6 @@ plusCube a b
                   , cube_y = cube_y a + cube_y b
                   , cube_z = cube_z a + cube_z b
                   }
-
 cubeLine :: CubeCoordinate -> CubeCoordinate -> [CubeCoordinate]
 cubeLine a b =
   let n = (floor $ distance a b)
@@ -230,6 +230,111 @@ axialRange n = mapAxialOverCube (cubeRange n)
 
 offsetRange :: Int -> OffsetCoordinate -> [OffsetCoordinate]
 offsetRange n = mapOffsetOverCube (cubeRange n)
+
+screen2axial :: Hexgrid -> ScreenCoordinate -> AxialCoordinate
+screen2axial g s =
+  let  x = ((fromIntegral $ pixel_x s) - (hw / 2.0)) / hw
+       hw = hexWidth g
+       z = fromIntegral $ pixel_y s
+--       z = fromIntegral $ - x - pixel_y
+       t1 = z / (grid_hex_size g)
+       t2 = dfloor $ x + t1
+       r = floor $ ((dfloor $ t1 - x) + t2) / 3.0
+       q = (floor $ ((dfloor $ 2.0 * x + 1.0) + t2) / 3 ) - r
+  in mkGridCoordinate g q r
+  where dfloor :: Double -> Double
+        dfloor d = fromIntegral ((floor d) :: Int)
+
+screen2offset :: Hexgrid -> Offset -> ScreenCoordinate -> OffsetCoordinate
+screen2offset g o s = axial2offset o $ screen2axial g s
+
+
+offset2screen :: Hexgrid -> OffsetCoordinate -> ScreenCoordinate
+offset2screen g c =
+  let hw = hexHorizontalDist g
+      hh = hexVerticalDist g
+      q = fromIntegral $ offset_q c
+      r = fromIntegral $ offset_r c
+      op = if (offset_offset c == Odd) then odd else even
+  in case (offset_orientation c) of
+      Horizontal ->
+        ScreenCoordinate { pixel_y = round $ hh * r
+                         , pixel_x = round $ (hw * q) +
+                                     (if (op $ offset_r c) then 0 else (hexWidth g) / 2)
+                         }
+      Vertical ->
+        ScreenCoordinate { pixel_x = round $ hw * q
+                         , pixel_y = round $ (hh * r) +
+                                     (if (op $ offset_q c) then 0 else (hexHeight g) / 2)
+                         }
+
+axial2screen :: Hexgrid -> Offset -> AxialCoordinate -> ScreenCoordinate
+axial2screen g o = offset2screen g . axial2offset o
+
+cube2screen :: Hexgrid -> Offset -> CubeCoordinate -> ScreenCoordinate
+cube2screen g o = offset2screen g . cube2offset o
+
+data ScreenCoordinate =
+  ScreenCoordinate { pixel_x :: Int
+                   , pixel_y :: Int
+} deriving (Show, Read, Eq, Typeable, Data)
+
+data ScreenBox =
+  ScreenBox { viewbox_pos  :: ScreenCoordinate
+            , viewbox_size :: ScreenCoordinate
+            } deriving (Show, Read, Eq, Typeable, Data)
+
+mkScreenBox :: Int -> Int -> Int -> Int -> ScreenBox
+mkScreenBox x y w h =
+  ScreenBox { viewbox_pos  = ScreenCoordinate { pixel_x = x, pixel_y = y }
+            , viewbox_size = ScreenCoordinate { pixel_x = w, pixel_y = h }
+            }
+
+inGrid :: Hexgrid -> OffsetCoordinate -> Bool
+inGrid g c =
+  let  q = offset_q c
+       r = offset_r c
+  in (q >= 0) && (q < grid_width g) && (r >= 0) && (r < grid_height g)
+
+hexesFromScreenBox :: Hexgrid -> Offset -> ScreenBox -> [OffsetCoordinate]
+hexesFromScreenBox g offset box =
+  let pos1 = viewbox_pos box
+      pos2 = pos1 `plusScreen` viewbox_size box
+      a = screen2offset g offset pos1
+      b = screen2offset g offset pos2
+      qmin = min (offset_q a) (offset_q b)
+      qmax = max (offset_q a) (offset_q b)
+      rmin = min (offset_r a) (offset_r b)
+      rmax = max (offset_r a) (offset_r b)
+      qs = [qmin..qmax]
+      rs = [rmin..rmax]
+  in filter (inGrid g) [
+    OffsetCoordinate { offset_offset = offset
+                     , offset_orientation = grid_orientation g
+                     , offset_q = q
+                     , offset_r = r
+                     } | r <- rs , q <- qs ]
+
+
+
+
+multScreen :: Double -> ScreenCoordinate -> ScreenCoordinate
+multScreen d s =
+  let vmul a = round $ d * (fromIntegral a)
+  in ScreenCoordinate { pixel_x = vmul $ pixel_x s
+                      , pixel_y = vmul $ pixel_y s
+                      }
+
+plusScreen :: ScreenCoordinate -> ScreenCoordinate -> ScreenCoordinate
+plusScreen a b
+  = ScreenCoordinate { pixel_x = pixel_x a + pixel_x b
+                     , pixel_y = pixel_y a + pixel_y b
+                     }
+
+
+
+
+
 
 
 
@@ -267,11 +372,15 @@ data Hexgrid =
     grid_height      :: Int
     }  deriving (Show, Read, Eq, Typeable, Data)
 
-data ScreenCoordinate =
-  ScreenCoordinate { pixel_x :: Int
-                   , pixel_y :: Int
 
-} deriving (Show, Read, Eq, Typeable, Data)
+mkGridCoordinate :: Hexgrid -> Int -> Int -> AxialCoordinate
+mkGridCoordinate g q r =
+  AxialCoordinate { axial_orientation = grid_orientation g
+                  , axial_q = q
+                  , axial_r = r
+                  }
+
+
 
 hexDim :: Hexgrid -> ScreenCoordinate
 hexDim g = ScreenCoordinate (round $ hexWidth g) (round $ hexHeight g)
@@ -340,8 +449,11 @@ minr (c:cs) = foldl min (axial_r c) $ map axial_r $ cs
 
 
 
+
 #ifdef FAY
 
+
+{-
 renderGrid :: Paper -> Hexgrid -> Fay [Element]
 renderGrid paper g =
   let gw = fromIntegral $ grid_width g
@@ -366,25 +478,40 @@ renderGrid paper g =
   in sequence [ render x y
               | x <- [0..gw - 1], y <- [0..gh - 1]]
 
+-}
 
-renderHexagon :: Paper -> Hexgrid -> (Double, Double) -> Fay Element
-renderHexagon paper g (center_x, center_y) =
+renderHexagon :: Paper -> Hexgrid -> String -> ScreenCoordinate -> Fay Element
+renderHexagon paper g str center = do
+  poly <- renderHexagonPolygon paper g center
+  let q = axial_q a
+      r = axial_r a
+      x = pixel_x center
+      y = pixel_y center
+      a = screen2axial g center
+  _ <- paperText paper x y str
+  _ <- paperText paper x (y + 15) $ show x ++ "/" ++ show y
+  return poly
+
+renderHexagonPolygon :: Paper -> Hexgrid -> ScreenCoordinate -> Fay Element
+renderHexagonPolygon paper g center =
   pathCommands ((map mkArgs [0..5]) ++ [ClosePath]) paper
   where mkArgs i =
           let size = grid_hex_size g
-              ofac = case (grid_orientation g) of
-                Horizontal -> 0.5
-                Vertical -> 0.0
-              angle = 2 * pi / 6 * (i + ofac)
+              center_x = fromIntegral $ pixel_x center
+              center_y = fromIntegral $ pixel_y center
+              angle_offset = if (grid_orientation g == Horizontal) then 0.5 else 0.0
+              angle = 2 * pi / 6 * (i + angle_offset)
               x_i = round $ center_x + size * cos(angle)
               y_i = round $ center_y + size * sin(angle)
               args = (x_i, y_i)
           in if (i == 0) then MoveTo args else LineTo args
 
-setPaperViewBox :: Paper -> Hexgrid -> (Int, Int) -> Double -> Fay ()
-setPaperViewBox paper g (x, y) zoom =
-  let w = fromIntegral $ (grid_width g) * (round  $ hexWidth g / zoom)
-      h = fromIntegral $ (grid_height g) * (round $ hexHeight g / zoom)
+setPaperViewBox :: Paper -> ScreenBox -> Fay ()
+setPaperViewBox paper vb =
+  let x = pixel_x . viewbox_pos $ vb
+      y = pixel_y . viewbox_pos $ vb
+      w = pixel_x . viewbox_size $ vb
+      h = pixel_y . viewbox_size $ vb
   in setViewBox paper x y w h False
 
 
