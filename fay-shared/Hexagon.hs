@@ -488,8 +488,9 @@ renderHexagon paper g str center = do
       x = pixel_x center
       y = pixel_y center
       a = screen2axial g center
-  _ <- paperText paper x y str
-  _ <- paperText paper x (y + 15) $ show x ++ "/" ++ show y
+  t1 <- paperText paper x y str
+  t2 <- paperText paper x (y + 15) $ show x ++ "/" ++ show y
+  g <- group paper [poly, t1,t2]
   return poly
 
 renderHexagonPolygon :: Paper -> Hexgrid -> ScreenCoordinate -> Fay Element
