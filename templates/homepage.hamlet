@@ -1,31 +1,21 @@
-<div id="main" class="container-fluid">
-  <div id="main_header" class="row">
-    <div class="page-header">
-      <h1>_{MsgApplicationName} <small>_{MsgMainMap}
+<div id="main_rail" class="col-md-8">
+  <div id="map_panel" class="panel panel-primary">
+    <div class="panel-heading col-md-12">
+      <h3 class="panel-title">Main Map
+    <div class="panel-body">
+      <svg id="map" width=700 height=400 x=-50 y=-50>
 
-  <div id="main_body" class="row">
-    <div id="main_rail" class="col-md-8">
+<div id="right_rail" class="col-md-4">
+  <div id="prefs_panel" class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Preferences</h3>
 
-      <div id="map_panel" class="panel panel-primary">
-        <div class="panel-heading col-md-12">
-          <h3 class="panel-title">Main Map
-        <div class="panel-body">
-          <svg id="map" width=700 height=400 x=-50 y=-50>
-
-    <div id="right_rail" class="col-md-4">
-
-      <div id="prefs_panel" class="panel panel-primary">
-
-        <div class="panel-heading">
-          <h3 class="panel-title">Preferences</h3>
-
-        <div id="prefs_main" class="panel-body">		  
-          <div class="btn-group">
-            <button type="button" class="btn btn-default">
-              <span class="glyphicon glyphicon-minus">
-            <button type="button" class="btn btn-default">		    
-              <span class="glyphicon glyphicon-map-marker">
-              Center
-            <button type="button" class="btn btn-default">
-              <span class="glyphicon glyphicon-plus">
-
+    <div id="prefs_main" class="panel-body">		  
+      <div class="btn-group">
+        <button type="button" class="btn btn-default">
+          <span class="glyphicon glyphicon-minus">
+        <button type="button" class="btn btn-default">		    
+          <span class="glyphicon glyphicon-map-marker">
+          Center
+        <button type="button" class="btn btn-default">
+          <span class="glyphicon glyphicon-plus">

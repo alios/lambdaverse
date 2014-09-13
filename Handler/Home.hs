@@ -17,7 +17,7 @@ import           Language.Haskell.TH
 getHomeR :: Handler Html
 getHomeR = do
     defaultLayout $ do
-        let application_name = "lambdaverse"
+        let application_name = "sector map"
         setTitle application_name
         $(widgetFile "homepage")
         $(fayFile' (ConE 'StaticR) "Home")
@@ -25,7 +25,7 @@ getHomeR = do
 getHexagonTestR :: Handler Html
 getHexagonTestR = do
     defaultLayout $ do
-      let application_name = "lambdaverse - hexagon self test"
+      let application_name = "hexagon self test"
       setTitle application_name
       addScriptRemote "//code.jquery.com/qunit/qunit-1.15.0.js"
       addStylesheetRemote "//code.jquery.com/qunit/qunit-1.15.0.css"
