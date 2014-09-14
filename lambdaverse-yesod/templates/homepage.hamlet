@@ -3,7 +3,7 @@
     <div class="panel-heading col-md-12">
       <h3 class="panel-title">Main Map
     <div class="panel-body">
-      <svg id="map" width=700 height=400 x=-50 y=-50>
+      <svg id="map" width=700 height=400>
 
 <div id="right_rail" class="col-md-4">
   <div id="prefs_panel" class="panel panel-primary">

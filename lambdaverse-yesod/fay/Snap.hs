@@ -21,6 +21,12 @@ data Element
 attr :: Element -> String -> String -> Fay ()
 attr = ffi "%1.attr(%2,%3)"
 
+attrPaper :: Paper -> String -> String -> Fay ()
+attrPaper = ffi "%1.attr(%2,%3)"
+
+attrValue :: Element -> String -> String
+attrValue = ffi "%1.attr(%2)"
+
 path' :: String -> Paper -> Fay Element
 path' = ffi "%2.path(%1)"
 

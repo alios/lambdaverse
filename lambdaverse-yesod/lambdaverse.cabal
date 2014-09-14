@@ -1,5 +1,5 @@
 name:              lambdaverse
-version:           0.1.1
+version:           0.1.2
 cabal-version:     >= 1.8
 build-type:        Simple
 
@@ -73,7 +73,9 @@ library
                  , fast-logger                   >= 2.2        && < 2.3
                  , wai-logger                    >= 2.2        && < 2.3
                  , yesod-fay                     >= 0.5
+                 , fay-text      
                  , fay                           >= 0.20
+                 , fay-jquery                    >= 0.6
                  , process
                  , system-filepath               >= 0.4
                  , QuickCheck
