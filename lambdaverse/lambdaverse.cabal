@@ -47,6 +47,14 @@ cabal-version:       >=1.10
 
 library
     exposed-modules:   Data.Hexagon
+                       Data.Hexagon.Types
+                       Data.Hexagon.Classes
+                       Data.Hexagon.CubeCoordinate
+                       Data.Hexagon.AxialCoordinate
+                       Data.Hexagon.OffsetCoordinate
+                       Data.Hexagon.ScreenCoordinate
+                       Data.Hexagon.Hexgrid
+
     hs-source-dirs:    src
 
     build-depends:     base  >= 4 && < 5
